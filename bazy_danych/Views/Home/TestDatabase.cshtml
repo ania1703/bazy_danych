@@ -1,0 +1,36 @@
+﻿@model List<bazy_danych.Models.Klient>
+
+@{
+    ViewData["Title"] = "Lista Klientów";
+}
+
+<h2>Lista Klientów</h2>
+
+@if (ViewBag.Error != null)
+{
+    <div style="color:red;">
+        <strong>@ViewBag.Error</strong>
+    </div>
+}
+else if (!Model.Any())
+{
+    <p>Brak rekordów w tabeli KLIENCI.</p>
+}
+else
+{
+    <table border="1" cellpadding="5" cellspacing="0">
+        <tr>
+            <th>ID</th>
+            <th>Imię</th>
+            <th>Nazwisko</th>
+        </tr>
+        @foreach (var klient in Model)
+        {
+            <tr>
+                <td>@klient.Id</td>
+                <td>@klient.Imie</td>
+                <td>@klient.Nazwisko</td>
+            </tr>
+        }
+    </table>
+}

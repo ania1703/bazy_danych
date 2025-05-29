@@ -1,0 +1,21 @@
+﻿@model List<string>
+
+<h2>Lista tabel</h2>
+
+@if (ViewBag.Error != null)
+{
+    <p style="color:red">@ViewBag.Error</p>
+}
+else if (!Model.Any())
+{
+    <p>Brak tabel.</p>
+}
+else
+{
+    <ul>
+        @foreach (var table in Model)
+        {
+            <li>@table</li>
+        }
+    </ul>
+}
