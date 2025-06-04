@@ -1,9 +1,10 @@
 ﻿namespace bazy_danych.Models
 {
-    public class Klient
+    public class Nauczyciel
     {
-        public int Id { get; set; }
+        public int NauczycielId { get; set; }
         public string Imie { get; set; }
         public string Nazwisko { get; set; }
+        public string Email { get; set; }
     }
 }

@@ -27,38 +27,6 @@ namespace bazy_danych.Controllers
             return View();
         }
 
-        public IActionResult ListaKlientow()
-        {
-            string connStr = _config.GetConnectionString("OracleDb");
-            List<Klient> klienci = new List<Klient>();
-
-            try
-            {
-                using var conn = new OracleConnection(connStr);
-                conn.Open();
-
-                using var cmd = conn.CreateCommand();
-                cmd.CommandText = "SELECT ID, IMIE, NAZWISKO FROM KLIENCI";
-
-                using var reader = cmd.ExecuteReader();
-                while (reader.Read())
-                {
-                    klienci.Add(new Klient
-                    {
-                        Id = reader.GetInt32(0),
-                        Imie = reader.GetString(1),
-                        Nazwisko = reader.GetString(2)
-                    });
-                }
-            }
-            catch (Exception ex)
-            {
-                ViewBag.Error = "B³¹d pobierania danych: " + ex.Message;
-            }
-
-            return View(klienci);
-        }
-
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
