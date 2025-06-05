@@ -1,0 +1,28 @@
+﻿@model List<bazy_danych.Models.SredniaOcena>
+
+<h2>Średnie oceny studentów</h2>
+
+@if (ViewBag.Error != null)
+{
+    <p style="color:red">@ViewBag.Error</p>
+}
+else
+{
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>ID studenta</th>
+                <th>Średnia ocen</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var o in Model)
+            {
+                <tr>
+                    <td>@o.Student_Id</td>
+                    <td>@o.Srednia_Ocen</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

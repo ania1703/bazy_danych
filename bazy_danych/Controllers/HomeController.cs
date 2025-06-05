@@ -58,6 +58,36 @@ namespace bazy_danych.Controllers
 
             return View(tables);
         }
+        public IActionResult SrednieOceny()
+        {
+            string connStr = _config.GetConnectionString("OracleDb");
+            List<SredniaOcena> oceny = new();
+
+            try
+            {
+                using var conn = new OracleConnection(connStr);
+                conn.Open();
+
+                using var cmd = conn.CreateCommand();
+                cmd.CommandText = "SELECT student_id, srednia_ocen FROM V_Srednie_Oceny";
+
+                using var reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    oceny.Add(new SredniaOcena
+                    {
+                        Student_Id = reader.GetInt32(0),
+                        Srednia_Ocen = reader.GetDecimal(1)
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                ViewBag.Error = "B³¹d: " + ex.Message;
+            }
+
+            return View(oceny);
+        }
 
     }
 
