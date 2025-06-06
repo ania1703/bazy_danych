@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Oracle.ManagedDataAccess.Client;
+using Microsoft.EntityFrameworkCore;
 using bazy_danych.Models;
+using bazy_danych.Data;
 
 namespace bazy_danych.Controllers
 {
@@ -8,44 +9,48 @@ namespace bazy_danych.Controllers
     [Route("api/[controller]")]
     public class RankingApiController : ControllerBase
     {
-        private readonly IConfiguration _config;
+        private readonly AppDbContext _context;
 
-        public RankingApiController(IConfiguration config)
+        public RankingApiController(AppDbContext context)
         {
-            _config = config;
+            _context = context;
         }
 
         [HttpGet]
-        public IActionResult GetRanking()
+        public async Task<IActionResult> GetRanking()
         {
-            string connStr = _config.GetConnectionString("OracleDb");
-            List<Ranking> ranking = new();
+            var ranking = await _context.Rankingi.ToListAsync();
+            return Ok(ranking);
+        }
 
-            try
-            {
-                using var conn = new OracleConnection(connStr);
-                conn.Open();
+        [HttpGet("{studentId}")]
+        public async Task<IActionResult> GetRankingDlaStudenta(int studentId)
+        {
+            var wpis = await _context.Rankingi.FindAsync(studentId);
+            if (wpis == null)
+                return NotFound("Nie znaleziono rankingu dla tego studenta.");
 
-                using var cmd = conn.CreateCommand();
-                cmd.CommandText = "SELECT student_id, srednia_ocen, miejsce_w_rankingu FROM ranking";
+            return Ok(wpis);
+        }
 
-                using var reader = cmd.ExecuteReader();
-                while (reader.Read())
-                {
-                    ranking.Add(new Ranking
-                    {
-                        StudentId = reader.GetInt32(0),
-                        SredniaOcen = reader.GetDecimal(1),
-                        MiejsceWRankingu = reader.GetInt32(2)
-                    });
-                }
+        [HttpPost]
+        public async Task<IActionResult> DodajRanking([FromBody] Ranking nowy)
+        {
+            _context.Rankingi.Add(nowy);
+            await _context.SaveChangesAsync();
+            return Ok("Ranking dodany.");
+        }
 
-                return Ok(ranking);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, "Błąd bazy danych: " + ex.Message);
-            }
+        [HttpDelete("{studentId}")]
+        public async Task<IActionResult> UsunRanking(int studentId)
+        {
+            var wpis = await _context.Rankingi.FindAsync(studentId);
+            if (wpis == null)
+                return NotFound();
+
+            _context.Rankingi.Remove(wpis);
+            await _context.SaveChangesAsync();
+            return Ok("Ranking usunięty.");
         }
     }
 }

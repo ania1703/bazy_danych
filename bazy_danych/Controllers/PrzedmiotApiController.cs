@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Oracle.ManagedDataAccess.Client;
 using bazy_danych.Models;
+using bazy_danych.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace bazy_danych.Controllers
 {
@@ -8,44 +9,47 @@ namespace bazy_danych.Controllers
     [Route("api/[controller]")]
     public class PrzedmiotApiController : ControllerBase
     {
-        private readonly IConfiguration _config;
+        private readonly AppDbContext _context;
 
-        public PrzedmiotApiController(IConfiguration config)
+        public PrzedmiotApiController(AppDbContext context)
         {
-            _config = config;
+            _context = context;
         }
 
         [HttpGet]
-        public IActionResult GetPrzedmioty()
+        public async Task<IActionResult> GetPrzedmioty()
         {
-            string connStr = _config.GetConnectionString("OracleDb");
-            List<Przedmiot> przedmioty = new();
+            var przedmioty = await _context.Przedmioty.ToListAsync();
+            return Ok(przedmioty);
+        }
 
-            try
-            {
-                using var conn = new OracleConnection(connStr);
-                conn.Open();
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetPrzedmiot(int id)
+        {
+            var przedmiot = await _context.Przedmioty.FindAsync(id);
+            if (przedmiot == null)
+                return NotFound();
+            return Ok(przedmiot);
+        }
 
-                using var cmd = conn.CreateCommand();
-                cmd.CommandText = "SELECT przedmiot_id, nazwa, semestr FROM przedmiot";
+        [HttpPost]
+        public async Task<IActionResult> DodajPrzedmiot([FromBody] Przedmiot przedmiot)
+        {
+            _context.Przedmioty.Add(przedmiot);
+            await _context.SaveChangesAsync();
+            return Ok("Przedmiot dodany.");
+        }
 
-                using var reader = cmd.ExecuteReader();
-                while (reader.Read())
-                {
-                    przedmioty.Add(new Przedmiot
-                    {
-                        PrzedmiotId = reader.GetInt32(0),
-                        Nazwa = reader.GetString(1),
-                        Semestr = reader.GetString(2)
-                    });
-                }
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> UsunPrzedmiot(int id)
+        {
+            var przedmiot = await _context.Przedmioty.FindAsync(id);
+            if (przedmiot == null)
+                return NotFound();
 
-                return Ok(przedmioty);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, "Błąd bazy danych: " + ex.Message);
-            }
+            _context.Przedmioty.Remove(przedmiot);
+            await _context.SaveChangesAsync();
+            return Ok("Przedmiot usunięty.");
         }
     }
 }

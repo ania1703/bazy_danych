@@ -1,7 +1,8 @@
-﻿using bazy_danych.Models;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.AspNetCore.Mvc;
 using Oracle.ManagedDataAccess.Client;
+using bazy_danych.Models;
+using bazy_danych.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace bazy_danych.Controllers
 {
@@ -9,38 +10,42 @@ namespace bazy_danych.Controllers
     [Route("api/[controller]")]
     public class StatystykaApiController : ControllerBase
     {
-        private readonly IConfiguration _config;
+        private readonly AppDbContext _context;
 
-        public StatystykaApiController(IConfiguration config)
+        public StatystykaApiController(AppDbContext context)
         {
-            _config = config;
+            _context = context;
         }
 
         [HttpPost("policz-studentow")]
         public IActionResult PoliczStudentow([FromBody] PoliczStudentowRequest request)
         {
-            string connStr = _config.GetConnectionString("OracleDb");
-
             try
             {
-                using var conn = new OracleConnection(connStr);
+                var conn = _context.Database.GetDbConnection();
                 conn.Open();
 
                 using var cmd = conn.CreateCommand();
                 cmd.CommandText = "PoliczStudentowZMinOcena";
                 cmd.CommandType = System.Data.CommandType.StoredProcedure;
 
-                cmd.Parameters.Add("min_liczba_ocen", OracleDbType.Int32).Value = request.MinLiczbaOcen;
+                var paramMin = new OracleParameter("min_liczba_ocen", OracleDbType.Int32)
+                {
+                    Direction = System.Data.ParameterDirection.Input,
+                    Value = request.MinLiczbaOcen
+                };
 
-                var outputParam = new OracleParameter("liczba_studentow", OracleDbType.Int32)
+                var paramOut = new OracleParameter("liczba_studentow", OracleDbType.Int32)
                 {
                     Direction = System.Data.ParameterDirection.Output
                 };
-                cmd.Parameters.Add(outputParam);
+
+                cmd.Parameters.Add(paramMin);
+                cmd.Parameters.Add(paramOut);
 
                 cmd.ExecuteNonQuery();
 
-                int wynik = Convert.ToInt32(outputParam.Value.ToString());
+                int wynik = Convert.ToInt32(paramOut.Value.ToString());
 
                 return Ok(new PoliczStudentowResponse { LiczbaStudentow = wynik });
             }

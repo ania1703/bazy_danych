@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Oracle.ManagedDataAccess.Client;
 using bazy_danych.Models;
+using bazy_danych.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace bazy_danych.Controllers
 {
@@ -8,47 +9,47 @@ namespace bazy_danych.Controllers
     [Route("api/[controller]")]
     public class StudentApiController : ControllerBase
     {
-        private readonly IConfiguration _config;
+        private readonly AppDbContext _context;
 
-        public StudentApiController(IConfiguration config)
+        public StudentApiController(AppDbContext context)
         {
-            _config = config;
+            _context = context;
         }
 
         [HttpGet]
-        public IActionResult GetStudenci()
+        public async Task<IActionResult> GetStudenci()
         {
-            string connStr = _config.GetConnectionString("OracleDb");
-            List<Student> studenci = new();
+            var studenci = await _context.Studenci.ToListAsync();
+            return Ok(studenci);
+        }
 
-            try
-            {
-                using var conn = new OracleConnection(connStr);
-                conn.Open();
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetStudent(int id)
+        {
+            var student = await _context.Studenci.FindAsync(id);
+            if (student == null)
+                return NotFound();
+            return Ok(student);
+        }
 
-                using var cmd = conn.CreateCommand();
-                cmd.CommandText = "SELECT student_id, imie, nazwisko, nr_indeksu, email FROM student";
+        [HttpPost]
+        public async Task<IActionResult> DodajStudenta([FromBody] Student student)
+        {
+            _context.Studenci.Add(student);
+            await _context.SaveChangesAsync();
+            return Ok("Student dodany.");
+        }
 
-                using var reader = cmd.ExecuteReader();
-                while (reader.Read())
-                {
-                    var student = new Student
-                    {
-                        StudentId = reader.GetInt32(0),
-                        Imie = reader.GetString(1),
-                        Nazwisko = reader.GetString(2),
-                        NrIndeksu = reader.GetString(3),
-                        Email = reader.GetString(4)
-                    };
-                    studenci.Add(student);
-                }
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> UsunStudenta(int id)
+        {
+            var student = await _context.Studenci.FindAsync(id);
+            if (student == null)
+                return NotFound();
 
-                return Ok(studenci);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, "Błąd bazy danych: " + ex.Message);
-            }
+            _context.Studenci.Remove(student);
+            await _context.SaveChangesAsync();
+            return Ok("Student usunięty.");
         }
     }
 }

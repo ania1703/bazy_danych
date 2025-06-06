@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Oracle.ManagedDataAccess.Client;
+using Microsoft.EntityFrameworkCore;
 using bazy_danych.Models;
+using bazy_danych.Data;
 
 namespace bazy_danych.Controllers
 {
@@ -8,46 +9,48 @@ namespace bazy_danych.Controllers
     [Route("api/[controller]")]
     public class HistoriaOcenApiController : ControllerBase
     {
-        private readonly IConfiguration _config;
+        private readonly AppDbContext _context;
 
-        public HistoriaOcenApiController(IConfiguration config)
+        public HistoriaOcenApiController(AppDbContext context)
         {
-            _config = config;
+            _context = context;
         }
 
         [HttpGet]
-        public IActionResult GetHistoriaOcen()
+        public async Task<IActionResult> GetHistoriaOcen()
         {
-            string connStr = _config.GetConnectionString("OracleDb");
-            List<HistoriaOcen> historia = new();
+            var historia = await _context.HistoriaOcen.ToListAsync();
+            return Ok(historia);
+        }
 
-            try
-            {
-                using var conn = new OracleConnection(connStr);
-                conn.Open();
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetHistoria(int id)
+        {
+            var wpis = await _context.HistoriaOcen.FindAsync(id);
+            if (wpis == null)
+                return NotFound("Nie znaleziono wpisu w historii.");
 
-                using var cmd = conn.CreateCommand();
-                cmd.CommandText = "SELECT historia_id, ocena_id, ocena_stara, ocena_nowa, data_zmiany FROM historia_ocen";
+            return Ok(wpis);
+        }
 
-                using var reader = cmd.ExecuteReader();
-                while (reader.Read())
-                {
-                    historia.Add(new HistoriaOcen
-                    {
-                        HistoriaId = reader.GetInt32(0),
-                        OcenaId = reader.GetInt32(1),
-                        OcenaStara = reader.GetDecimal(2),
-                        OcenaNowa = reader.GetDecimal(3),
-                        DataZmiany = reader.GetDateTime(4)
-                    });
-                }
+        [HttpPost]
+        public async Task<IActionResult> DodajHistorie([FromBody] HistoriaOcen wpis)
+        {
+            _context.HistoriaOcen.Add(wpis);
+            await _context.SaveChangesAsync();
+            return Ok("Wpis dodany do historii ocen.");
+        }
 
-                return Ok(historia);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, "Błąd bazy danych: " + ex.Message);
-            }
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> UsunHistorie(int id)
+        {
+            var wpis = await _context.HistoriaOcen.FindAsync(id);
+            if (wpis == null)
+                return NotFound();
+
+            _context.HistoriaOcen.Remove(wpis);
+            await _context.SaveChangesAsync();
+            return Ok("Wpis usunięty z historii ocen.");
         }
     }
 }

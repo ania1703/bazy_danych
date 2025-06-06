@@ -8,5 +8,9 @@
         public int NauczycielId { get; set; }
         public decimal OcenaWartosc { get; set; }
         public DateTime DataOceny { get; set; }
+
+        public Student Student { get; set; }
+        public Przedmiot Przedmiot { get; set; }
+        public Nauczyciel Nauczyciel { get; set; }
     }
 }

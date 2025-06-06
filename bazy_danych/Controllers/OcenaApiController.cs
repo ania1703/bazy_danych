@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Oracle.ManagedDataAccess.Client;
+using Microsoft.EntityFrameworkCore;
 using bazy_danych.Models;
+using bazy_danych.Data;
 
 namespace bazy_danych.Controllers
 {
@@ -8,108 +9,62 @@ namespace bazy_danych.Controllers
     [Route("api/[controller]")]
     public class OcenaApiController : ControllerBase
     {
-        private readonly IConfiguration _config;
+        private readonly AppDbContext _context;
 
-        public OcenaApiController(IConfiguration config)
+        public OcenaApiController(AppDbContext context)
         {
-            _config = config;
+            _context = context;
         }
 
+        // GET: api/Ocena
         [HttpGet]
-        public IActionResult GetOceny()
+        public async Task<IActionResult> GetOceny()
         {
-            string connStr = _config.GetConnectionString("OracleDb");
-            List<Ocena> oceny = new();
+            var oceny = await _context.Oceny
+                .Include(o => o.Student)
+                .Include(o => o.Przedmiot)
+                .Include(o => o.Nauczyciel)
+                .ToListAsync();
 
-            try
-            {
-                using var conn = new OracleConnection(connStr);
-                conn.Open();
-
-                using var cmd = conn.CreateCommand();
-                cmd.CommandText = "SELECT ocena_id, student_id, przedmiot_id, nauczyciel_id, ocena, data_oceny FROM ocena";
-
-                using var reader = cmd.ExecuteReader();
-                while (reader.Read())
-                {
-                    var ocena = new Ocena
-                    {
-                        OcenaId = reader.GetInt32(0),
-                        StudentId = reader.GetInt32(1),
-                        PrzedmiotId = reader.GetInt32(2),
-                        NauczycielId = reader.GetInt32(3),
-                        OcenaWartosc = reader.GetDecimal(4),
-                        DataOceny = reader.GetDateTime(5)
-                    };
-                    oceny.Add(ocena);
-                }
-
-                return Ok(oceny);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, "Błąd bazy danych: " + ex.Message);
-            }
+            return Ok(oceny);
         }
+
+        // GET: api/Ocena/5
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetOcena(int id)
+        {
+            var ocena = await _context.Oceny
+                .Include(o => o.Student)
+                .Include(o => o.Przedmiot)
+                .Include(o => o.Nauczyciel)
+                .FirstOrDefaultAsync(o => o.OcenaId == id);
+
+            if (ocena == null)
+                return NotFound("Nie znaleziono oceny.");
+
+            return Ok(ocena);
+        }
+
+        // POST: api/Ocena
         [HttpPost]
-        public IActionResult DodajOcene([FromBody] Ocena nowaOcena)
+        public async Task<IActionResult> DodajOcene([FromBody] Ocena nowaOcena)
         {
-            string connStr = _config.GetConnectionString("OracleDb");
-
-            try
-            {
-                using var conn = new OracleConnection(connStr);
-                conn.Open();
-
-                using var cmd = conn.CreateCommand();
-                cmd.CommandText = @"
-            INSERT INTO ocena (ocena_id, student_id, przedmiot_id, nauczyciel_id, ocena, data_oceny)
-            VALUES (:id, :student, :przedmiot, :nauczyciel, :wartosc, :data)";
-
-                cmd.Parameters.Add(new OracleParameter("id", nowaOcena.OcenaId));
-                cmd.Parameters.Add(new OracleParameter("student", nowaOcena.StudentId));
-                cmd.Parameters.Add(new OracleParameter("przedmiot", nowaOcena.PrzedmiotId));
-                cmd.Parameters.Add(new OracleParameter("nauczyciel", nowaOcena.NauczycielId));
-                cmd.Parameters.Add(new OracleParameter("wartosc", nowaOcena.OcenaWartosc));
-                cmd.Parameters.Add(new OracleParameter("data", nowaOcena.DataOceny));
-
-                cmd.ExecuteNonQuery();
-
-                return Ok("Ocena dodana.");
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, "Błąd bazy danych: " + ex.Message);
-            }
+            _context.Oceny.Add(nowaOcena);
+            await _context.SaveChangesAsync();
+            return Ok("Ocena dodana.");
         }
+
+        // DELETE: api/Ocena/5
         [HttpDelete("{id}")]
-        public IActionResult UsunOcene(int id)
+        public async Task<IActionResult> UsunOcene(int id)
         {
-            string connStr = _config.GetConnectionString("OracleDb");
+            var ocena = await _context.Oceny.FindAsync(id);
+            if (ocena == null)
+                return NotFound("Nie znaleziono oceny o podanym ID.");
 
-            try
-            {
-                using var conn = new OracleConnection(connStr);
-                conn.Open();
-
-                using var cmd = conn.CreateCommand();
-                cmd.CommandText = "DELETE FROM ocena WHERE ocena_id = :id";
-                cmd.Parameters.Add(new OracleParameter("id", id));
-
-                int affected = cmd.ExecuteNonQuery();
-                if (affected == 0)
-                {
-                    return NotFound("Nie znaleziono oceny o podanym ID.");
-                }
-
-                return Ok("Ocena usunięta.");
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, "Błąd bazy danych: " + ex.Message);
-            }
+            _context.Oceny.Remove(ocena);
+            await _context.SaveChangesAsync();
+            return Ok("Ocena usunięta.");
         }
-
     }
-
 }

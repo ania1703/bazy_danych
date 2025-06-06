@@ -6,5 +6,8 @@
         public string Imie { get; set; }
         public string Nazwisko { get; set; }
         public string Email { get; set; }
+
+        // Nawigacja
+        public ICollection<Ocena> Oceny { get; set; }
     }
 }

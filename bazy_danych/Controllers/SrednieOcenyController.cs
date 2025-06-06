@@ -1,7 +1,7 @@
-﻿using bazy_danych.Models;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
-using Oracle.ManagedDataAccess.Client;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using bazy_danych.Models;
+using bazy_danych.Data;
 
 namespace bazy_danych.Controllers
 {
@@ -9,41 +9,19 @@ namespace bazy_danych.Controllers
     [Route("api/[controller]")]
     public class SrednieOcenyController : ControllerBase
     {
-        private readonly IConfiguration _config;
+        private readonly AppDbContext _context;
 
-        public SrednieOcenyController(IConfiguration config)
+        public SrednieOcenyController(AppDbContext context)
         {
-            _config = config;
+            _context = context;
         }
 
         [HttpGet]
-        public ActionResult<IEnumerable<SredniaOcena>> Get()
+        public async Task<IActionResult> Get()
         {
-            string connStr = _config.GetConnectionString("OracleDb");
-            List<SredniaOcena> oceny = new();
-
-            try
-            {
-                using var conn = new OracleConnection(connStr);
-                conn.Open();
-
-                using var cmd = conn.CreateCommand();
-                cmd.CommandText = "SELECT student_id, srednia_ocen FROM V_Srednie_Oceny";
-
-                using var reader = cmd.ExecuteReader();
-                while (reader.Read())
-                {
-                    oceny.Add(new SredniaOcena
-                    {
-                        Student_Id = reader.GetInt32(0),
-                        Srednia_Ocen = reader.GetDecimal(1)
-                    });
-                }
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Błąd: {ex.Message}");
-            }
+            var oceny = await _context.Set<SredniaOcena>()
+                .FromSqlRaw("SELECT student_id AS Student_Id, srednia_ocen AS Srednia_Ocen FROM V_Srednie_Oceny")
+                .ToListAsync();
 
             return Ok(oceny);
         }

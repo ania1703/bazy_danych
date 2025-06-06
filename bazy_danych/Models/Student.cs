@@ -7,5 +7,8 @@
         public string Nazwisko { get; set; }
         public string NrIndeksu { get; set; }
         public string Email { get; set; }
+
+        // Nawigacja
+        public ICollection<Ocena> Oceny { get; set; }
     }
 }

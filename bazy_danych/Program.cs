@@ -1,5 +1,10 @@
+using bazy_danych.Data;
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseOracle(builder.Configuration.GetConnectionString("OracleDb")));
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
