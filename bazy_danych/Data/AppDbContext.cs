@@ -18,27 +18,54 @@ namespace bazy_danych.Data
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            // Ranking
-            modelBuilder.Entity<Ranking>().HasKey(r => r.StudentId);
+        {// Wymuszenie nazw tabel dokładnie jak w Oracle
+            modelBuilder.Entity<Student>().ToTable("STUDENT");
+            modelBuilder.Entity<Nauczyciel>().ToTable("NAUCZYCIEL");
+            modelBuilder.Entity<Przedmiot>().ToTable("PRZEDMIOT");
+            modelBuilder.Entity<Ocena>().ToTable("OCENA");
+            modelBuilder.Entity<Ranking>().ToTable("RANKING");
+            modelBuilder.Entity<HistoriaOcen>().ToTable("HISTORIA_OCEN");
+            modelBuilder.Entity<SredniaOcena>().HasNoKey().ToView("WIDOK_SREDNIA_OCENA");
 
-            // Ocena → Student
+            // 🔗 Relacja: Ocena → Student (wiele ocen do jednego studenta)
             modelBuilder.Entity<Ocena>()
                 .HasOne(o => o.Student)
                 .WithMany(s => s.Oceny)
                 .HasForeignKey(o => o.StudentId);
 
-            // Ocena → Przedmiot
+            // 🔗 Relacja: Ocena → Przedmiot
             modelBuilder.Entity<Ocena>()
-                .HasOne(o => o.Przedmiot)
-                .WithMany(p => p.Oceny)
-                .HasForeignKey(o => o.PrzedmiotId);
+    .HasOne(o => o.Przedmiot)
+    .WithMany()
+    .HasForeignKey(o => o.PrzedmiotId);
 
-            // Ocena → Nauczyciel
+            // 🔗 Relacja: Ocena → Nauczyciel
             modelBuilder.Entity<Ocena>()
                 .HasOne(o => o.Nauczyciel)
-                .WithMany(n => n.Oceny)
+                .WithMany()
                 .HasForeignKey(o => o.NauczycielId);
+
+            // 🔗 Relacja: HistoriaOcen → Ocena
+            modelBuilder.Entity<HistoriaOcen>()
+                .HasOne<Ocena>() // jeśli nie masz właściwości nawigacyjnej
+                .WithMany()
+                .HasForeignKey(h => h.OcenaId);
+
+            // 🔗 Ranking → Student (jeden do jednego)
+            modelBuilder.Entity<Ranking>()
+                .HasOne<Student>()
+                .WithOne()
+                .HasForeignKey<Ranking>(r => r.StudentId);
+
+            // 🔷 SredniaOcena — widok bez klucza
+            modelBuilder.Entity<SredniaOcena>().HasNoKey().ToView("WIDOK_SREDNIA_OCENA");
+
+            // ✏️ Dodatkowo — jeśli masz liczby zmiennoprzecinkowe (decimal) → ustaw precyzję:
+            modelBuilder.Entity<Ocena>().Property(o => o.OcenaWartosc).HasPrecision(3, 1);
+            modelBuilder.Entity<HistoriaOcen>().Property(h => h.OcenaStara).HasPrecision(3, 1);
+            modelBuilder.Entity<HistoriaOcen>().Property(h => h.OcenaNowa).HasPrecision(3, 1);
+            modelBuilder.Entity<Ranking>().Property(r => r.SredniaOcen).HasPrecision(5, 2);
+            modelBuilder.Entity<SredniaOcena>().Property(s => s.Srednia_Ocen).HasPrecision(5, 2);
         }
     }
 }

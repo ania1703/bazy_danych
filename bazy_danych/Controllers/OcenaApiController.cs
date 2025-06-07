@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using bazy_danych.Models;
 using bazy_danych.Data;
+using Microsoft.AspNetCore.Authorization;
 
 namespace bazy_danych.Controllers
 {
@@ -16,7 +17,7 @@ namespace bazy_danych.Controllers
             _context = context;
         }
 
-        // GET: api/Ocena
+
         [HttpGet]
         public async Task<IActionResult> GetOceny()
         {
@@ -46,6 +47,7 @@ namespace bazy_danych.Controllers
         }
 
         // POST: api/Ocena
+
         [HttpPost]
         public async Task<IActionResult> DodajOcene([FromBody] Ocena nowaOcena)
         {
@@ -55,6 +57,7 @@ namespace bazy_danych.Controllers
         }
 
         // DELETE: api/Ocena/5
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> UsunOcene(int id)
         {
