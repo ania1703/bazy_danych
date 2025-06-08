@@ -18,10 +18,25 @@ namespace bazy_danych.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetPrzedmioty()
+        public async Task<IActionResult> GetPrzedmioty(int page = 1, int pageSize = 10)
         {
-            var przedmioty = await _context.Przedmioty.ToListAsync();
-            return Ok(przedmioty);
+            var query = _context.Przedmioty.AsQueryable();
+
+            var totalItems = await query.CountAsync();
+            var przedmioty = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var result = new
+            {
+                TotalItems = totalItems,
+                Page = page,
+                PageSize = pageSize,
+                Items = przedmioty
+            };
+
+            return Ok(result);
         }
 
         [HttpGet("{id}")]

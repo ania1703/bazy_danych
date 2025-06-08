@@ -17,12 +17,27 @@ namespace bazy_danych.Controllers
             _context = context;
         }
 
-        [Authorize(Roles = "admin")]
+        [Authorize(Roles = "admin, nauczyciel")]
         [HttpGet]
-        public async Task<IActionResult> GetStudenci()
+        public async Task<IActionResult> GetStudenci(int page = 1, int pageSize = 10)
         {
-            var studenci = await _context.Studenci.ToListAsync();
-            return Ok(studenci);
+            var query = _context.Studenci.AsQueryable();
+
+            var totalItems = await query.CountAsync();
+            var studenci = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var result = new
+            {
+                TotalItems = totalItems,
+                Page = page,
+                PageSize = pageSize,
+                Items = studenci
+            };
+
+            return Ok(result);
         }
 
         [Authorize(Roles = "student, admin")]
@@ -48,9 +63,15 @@ namespace bazy_danych.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> UsunStudenta(int id)
         {
-            var student = await _context.Studenci.FindAsync(id);
+            var student = await _context.Studenci
+        .Include(s => s.Oceny) // załaduj oceny studenta
+        .FirstOrDefaultAsync(s => s.StudentId == id);
+
             if (student == null)
-                return NotFound();
+                return NotFound("Nie znaleziono studenta.");
+
+            if (student.Oceny.Any())
+                return BadRequest("Nie można usunąć studenta, który ma przypisane oceny.");
 
             _context.Studenci.Remove(student);
             await _context.SaveChangesAsync();
