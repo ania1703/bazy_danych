@@ -25,6 +25,7 @@ namespace bazy_danych.Controllers
             return Ok(nauczyciele);
         }
 
+        [Authorize(Roles = "admin, nauczyciel")]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetNauczyciel(int id)
         {
@@ -34,6 +35,7 @@ namespace bazy_danych.Controllers
             return Ok(nauczyciel);
         }
 
+        [Authorize(Roles = "admin")]
         [HttpPost]
         public async Task<IActionResult> DodajNauczyciela([FromBody] Nauczyciel nauczyciel)
         {
@@ -42,6 +44,7 @@ namespace bazy_danych.Controllers
             return Ok("Nauczyciel dodany.");
         }
 
+        [Authorize(Roles = "admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> UsunNauczyciela(int id)
         {

@@ -11,5 +11,8 @@ namespace bazy_danych.Models
 
         [Column("SREDNIA_OCEN")]
         public decimal SredniaOcen { get; set; }
+
+        [Column("MIEJSCE_W_RANKINGU")]
+        public int miejsceWRankingu { get; set; }
     }
 }

@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using bazy_danych.Models;
 using bazy_danych.Data;
+using Microsoft.AspNetCore.Authorization;
 
 namespace bazy_danych.Controllers
 {
@@ -16,6 +17,7 @@ namespace bazy_danych.Controllers
             _context = context;
         }
 
+        [Authorize(Roles = "student,nauczyciel,admin")]
         [HttpGet]
         public async Task<IActionResult> Get()
         {

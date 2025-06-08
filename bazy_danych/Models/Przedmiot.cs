@@ -16,6 +16,6 @@ namespace bazy_danych.Models
         public string Semestr { get; set; }
 
         // Nawigacja
-        public ICollection<Ocena> Oceny { get; set; }
+        public ICollection<Ocena>? Oceny { get; set; }
     }
 }

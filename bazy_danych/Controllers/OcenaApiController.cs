@@ -18,7 +18,7 @@ namespace bazy_danych.Controllers
         }
 
 
-        [HttpGet]
+        /*[HttpGet]
         public async Task<IActionResult> GetOceny()
         {
             var oceny = await _context.Oceny
@@ -28,9 +28,10 @@ namespace bazy_danych.Controllers
                 .ToListAsync();
 
             return Ok(oceny);
-        }
+        }*/
 
         // GET: api/Ocena/5
+        [Authorize(Roles = "student, nauczyciel, admin")]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetOcena(int id)
         {
@@ -46,18 +47,59 @@ namespace bazy_danych.Controllers
             return Ok(ocena);
         }
 
-        // POST: api/Ocena
-
-        [HttpPost]
-        public async Task<IActionResult> DodajOcene([FromBody] Ocena nowaOcena)
+        [Authorize(Roles = "nauczyciel, admin")]
+        [HttpGet("lite")]
+        public async Task<IActionResult> GetOcenyLite(int page = 1, int pageSize = 10)
         {
+            var query = _context.Oceny
+                .Include(o => o.Student)
+                .Include(o => o.Przedmiot)
+                .Include(o => o.Nauczyciel)
+                .Select(o => new OcenaDTO
+                {
+                    OcenaId = o.OcenaId,
+                    StudentImie = o.Student.Imie,
+                    StudentNazwisko = o.Student.Nazwisko,
+                    PrzedmiotNazwa = o.Przedmiot.Nazwa,
+                    NauczycielImie = o.Nauczyciel.Imie,
+                    Ocena = o.OcenaWartosc,
+                    Data = o.DataOceny
+                });
+
+            var result = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return Ok(result);
+        }
+
+
+
+        // POST: api/Ocena
+        [Authorize(Roles = "nauczyciel, admin")]
+        [HttpPost]
+        public async Task<IActionResult> DodajOcene([FromBody] DodajOceneRequest req)
+        {
+            var nowaOcena = new Ocena
+            {
+                OcenaId = req.OcenaId,
+                StudentId = req.StudentId,
+                PrzedmiotId = req.PrzedmiotId,
+                NauczycielId = req.NauczycielId,
+                OcenaWartosc = req.OcenaWartosc,
+                DataOceny = req.DataOceny
+            };
+
             _context.Oceny.Add(nowaOcena);
             await _context.SaveChangesAsync();
+
             return Ok("Ocena dodana.");
         }
 
-        // DELETE: api/Ocena/5
 
+        // DELETE: api/Ocena/5
+        [Authorize(Roles = "nauczyciel, admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> UsunOcene(int id)
         {

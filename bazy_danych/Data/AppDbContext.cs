@@ -35,15 +35,17 @@ namespace bazy_danych.Data
 
             // 🔗 Relacja: Ocena → Przedmiot
             modelBuilder.Entity<Ocena>()
-    .HasOne(o => o.Przedmiot)
-    .WithMany()
-    .HasForeignKey(o => o.PrzedmiotId);
+                .HasOne(o => o.Przedmiot)
+                .WithMany(p => p.Oceny)
+                .HasForeignKey(o => o.PrzedmiotId);
+
 
             // 🔗 Relacja: Ocena → Nauczyciel
             modelBuilder.Entity<Ocena>()
                 .HasOne(o => o.Nauczyciel)
-                .WithMany()
+                .WithMany(n => n.Oceny)
                 .HasForeignKey(o => o.NauczycielId);
+
 
             // 🔗 Relacja: HistoriaOcen → Ocena
             modelBuilder.Entity<HistoriaOcen>()

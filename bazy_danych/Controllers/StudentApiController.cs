@@ -2,6 +2,7 @@
 using bazy_danych.Models;
 using bazy_danych.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 
 namespace bazy_danych.Controllers
 {
@@ -16,6 +17,7 @@ namespace bazy_danych.Controllers
             _context = context;
         }
 
+        [Authorize(Roles = "admin")]
         [HttpGet]
         public async Task<IActionResult> GetStudenci()
         {
@@ -23,6 +25,7 @@ namespace bazy_danych.Controllers
             return Ok(studenci);
         }
 
+        [Authorize(Roles = "student, admin")]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetStudent(int id)
         {
@@ -32,6 +35,7 @@ namespace bazy_danych.Controllers
             return Ok(student);
         }
 
+        [Authorize(Roles = "admin")]
         [HttpPost]
         public async Task<IActionResult> DodajStudenta([FromBody] Student student)
         {
@@ -40,6 +44,7 @@ namespace bazy_danych.Controllers
             return Ok("Student dodany.");
         }
 
+        [Authorize(Roles = "admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> UsunStudenta(int id)
         {
