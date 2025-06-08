@@ -19,10 +19,25 @@ namespace bazy_danych.Controllers
 
         [Authorize(Roles = "admin")]
         [HttpGet]
-        public async Task<IActionResult> GetNauczyciele()
+        public async Task<IActionResult> GetNauczyciele(int page = 1, int pageSize = 10)
         {
-            var nauczyciele = await _context.Nauczyciele.ToListAsync();
-            return Ok(nauczyciele);
+            var query = _context.Nauczyciele.AsQueryable();
+
+            var totalItems = await query.CountAsync();
+            var nauczyciele = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var result = new
+            {
+                TotalItems = totalItems,
+                Page = page,
+                PageSize = pageSize,
+                Items = nauczyciele
+            };
+
+            return Ok(result);
         }
 
         [Authorize(Roles = "admin, nauczyciel")]

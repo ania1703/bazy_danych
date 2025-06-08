@@ -66,10 +66,20 @@ namespace bazy_danych.Controllers
                     Data = o.DataOceny
                 });
 
-            var result = await query
+            var totalItems = await query.CountAsync();
+
+            var pagedItems = await query
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
+
+            var result = new
+            {
+                TotalItems = totalItems,
+                Page = page,
+                PageSize = pageSize,
+                Items = pagedItems
+            };
 
             return Ok(result);
         }
