@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using bazy_danych.Models;
 using bazy_danych.Data;
+using Microsoft.AspNetCore.Authorization;
 
 namespace bazy_danych.Controllers
 {
@@ -16,6 +17,7 @@ namespace bazy_danych.Controllers
             _context = context;
         }
 
+        [Authorize(Roles = "admin")]
         [HttpGet]
         public async Task<IActionResult> GetHistoriaOcen()
         {
@@ -23,6 +25,7 @@ namespace bazy_danych.Controllers
             return Ok(historia);
         }
 
+        [Authorize(Roles = "student, admin")]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetHistoria(int id)
         {
@@ -33,6 +36,7 @@ namespace bazy_danych.Controllers
             return Ok(wpis);
         }
 
+        [Authorize(Roles = "nauczyciel, admin")]
         [HttpPost]
         public async Task<IActionResult> DodajHistorie([FromBody] HistoriaOcen wpis)
         {
@@ -41,6 +45,7 @@ namespace bazy_danych.Controllers
             return Ok("Wpis dodany do historii ocen.");
         }
 
+        [Authorize(Roles = "nauczyciel, admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> UsunHistorie(int id)
         {

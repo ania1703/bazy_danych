@@ -18,13 +18,14 @@ namespace bazy_danych.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "student,nauczyciel")]
+        [Authorize(Roles = "student,nauczyciel,admin")]
         public async Task<IActionResult> GetRanking()
         {
             var ranking = await _context.Rankingi.ToListAsync();
             return Ok(ranking);
         }
 
+        [Authorize(Roles = "student,nauczyciel,admin")]
         [HttpGet("{studentId}")]
         public async Task<IActionResult> GetRankingDlaStudenta(int studentId)
         {
@@ -35,6 +36,7 @@ namespace bazy_danych.Controllers
             return Ok(wpis);
         }
 
+        [Authorize(Roles = "nauczyciel,admin")]
         [HttpPost]
         public async Task<IActionResult> DodajRanking([FromBody] Ranking nowy)
         {
@@ -43,6 +45,7 @@ namespace bazy_danych.Controllers
             return Ok("Ranking dodany.");
         }
 
+        [Authorize(Roles = "admin")]
         [HttpDelete("{studentId}")]
         public async Task<IActionResult> UsunRanking(int studentId)
         {

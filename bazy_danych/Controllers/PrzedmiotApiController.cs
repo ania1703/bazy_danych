@@ -2,6 +2,7 @@
 using bazy_danych.Models;
 using bazy_danych.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 
 namespace bazy_danych.Controllers
 {
@@ -32,6 +33,7 @@ namespace bazy_danych.Controllers
             return Ok(przedmiot);
         }
 
+        [Authorize(Roles = "admin")]
         [HttpPost]
         public async Task<IActionResult> DodajPrzedmiot([FromBody] Przedmiot przedmiot)
         {
@@ -40,6 +42,7 @@ namespace bazy_danych.Controllers
             return Ok("Przedmiot dodany.");
         }
 
+        [Authorize(Roles = "admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> UsunPrzedmiot(int id)
         {

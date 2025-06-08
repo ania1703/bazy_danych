@@ -2,6 +2,7 @@
 using Oracle.ManagedDataAccess.Client;
 using bazy_danych.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 
 namespace bazy_danych.Controllers
 {
@@ -16,6 +17,7 @@ namespace bazy_danych.Controllers
             _context = context;
         }
 
+        [Authorize(Roles = "nauczyciel, admin")]
         [HttpPost]
         public IActionResult AktualizujOcene([FromQuery] int ocenaId, [FromQuery] decimal nowaOcena)
         {

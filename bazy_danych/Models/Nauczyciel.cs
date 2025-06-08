@@ -6,7 +6,7 @@ namespace bazy_danych.Models
     public class Nauczyciel
     {
         [Key]
-        [Column("NAUCZYCIEL_ID")] // ⬅️ to dodaj
+        [Column("NAUCZYCIEL_ID")]
         public int NauczycielId { get; set; }
 
         [Column("IMIE")]
@@ -19,6 +19,6 @@ namespace bazy_danych.Models
         public string Email { get; set; }
 
         // Nawigacja
-        public ICollection<Ocena> Oceny { get; set; }
+        public ICollection<Ocena>? Oceny { get; set; }
     }
 }
