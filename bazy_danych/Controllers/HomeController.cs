@@ -88,6 +88,45 @@ namespace bazy_danych.Controllers
 
             return View(oceny);
         }
+        [HttpGet]
+        public IActionResult Zaliczenie()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public IActionResult Zaliczenie(int studentId, int przedmiotId)
+        {
+            try
+            {
+                var conn = _config.GetConnectionString("OracleDb");
+                using var connection = new OracleConnection(conn);
+                connection.Open();
+
+                using var cmd = connection.CreateCommand();
+                cmd.CommandText = "CzyStudentZaliczylPrzedmiot";
+                cmd.CommandType = System.Data.CommandType.StoredProcedure;
+
+                cmd.Parameters.Add(new OracleParameter("p_student_id", studentId));
+                cmd.Parameters.Add(new OracleParameter("p_przedmiot_id", przedmiotId));
+
+                var output = new OracleParameter("p_zaliczyl", OracleDbType.Varchar2, 20)
+                {
+                    Direction = System.Data.ParameterDirection.Output
+                };
+                cmd.Parameters.Add(output);
+
+                cmd.ExecuteNonQuery();
+
+                ViewBag.Wynik = output.Value?.ToString() ?? "BRAK WYNIKU";
+            }
+            catch (Exception ex)
+            {
+                ViewBag.Error = "B³¹d: " + ex.Message;
+            }
+
+            return View();
+        }
 
     }
 

@@ -1,0 +1,27 @@
+﻿@{
+    ViewData["Title"] = "Zaliczenie przedmiotu";
+}
+
+<h2>Sprawdź zaliczenie przedmiotu</h2>
+
+<form method="post">
+    <div>
+        <label>ID Studenta:</label>
+        <input type="number" name="studentId" required />
+    </div>
+    <div>
+        <label>ID Przedmiotu:</label>
+        <input type="number" name="przedmiotId" required />
+    </div>
+    <button type="submit">Sprawdź</button>
+</form>
+
+@if (ViewBag.Wynik != null)
+{
+    <h4>Wynik: @ViewBag.Wynik</h4>
+}
+
+@if (ViewBag.Error != null)
+{
+    <p style="color:red">@ViewBag.Error</p>
+}
